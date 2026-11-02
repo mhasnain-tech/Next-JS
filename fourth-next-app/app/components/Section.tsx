@@ -75,7 +75,8 @@ function Card({ data }: { data: Product }) {
       <div className="bg-neutral-950/80 border border-neutral-800/40 rounded-xl w-full h-[180px] flex items-center justify-center overflow-hidden p-3 relative group-hover:border-neutral-700/50 transition-colors duration-200">
         {imgUrl ? (
           <img
-            src={imgUrl}
+          src={imgUrl[0] || ""}
+
             className="max-h-full max-w-full object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] group-hover:scale-105 transition-transform duration-300"
             alt={data.title}
           />
