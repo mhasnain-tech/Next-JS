@@ -1,5 +1,6 @@
 "use cache";
 
+export const instant = false // Disables instant static validation for this segment
 
 import axios from "axios";
 
