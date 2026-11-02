@@ -1,9 +1,5 @@
-"use cache";
-
-import axios from "axios";
 import Link from "next/link";
 
-// 1. Explicit TypeScript interface for the product object
 interface Product {
   id: number;
   title: string;
@@ -11,50 +7,93 @@ interface Product {
   discountPercentage: number;
 }
 
-const Section = async () => {
-  let products: Product[] = [];
-
+// Next.js native fetch wrapper with 1-hour cache revalidation
+async function getSectionProducts(): Promise<Product[]> {
   try {
-    // Fetches items 101-110 from the endpoint
-    const { data } = await axios.get("https://dummyjson.com/products?skip=100&limit=10");
-    products = data.products || [];
+    const res = await fetch("https://dummyjson.com/products?limit=10&skip=100", {
+      next: { revalidate: 3600 }
+    });
+    
+    if (!res.ok) {
+      throw new Error("Failed to fetch section products");
+    }
+    
+    const data = await res.json();
+    return data.products || [];
   } catch (error) {
     console.error("Failed to fetch section products:", error);
+    return [];
   }
+}
+
+const Section = async () => {
+  const products = await getSectionProducts();
 
   if (products.length === 0) {
-    return <p className="text-xl text-black text-center py-10">No products available.</p>;
+    return (
+      <div className="text-center py-20 w-full">
+        <p className="text-xl text-neutral-500 font-medium">No products found in the database.</p>
+      </div>
+    );
   }
 
   return (
-    <div className="flex flex-wrap gap-8 justify-center min-h-screen">
-      {products.map((card) => (
-        // Fixed: Use absolute routing paths and removed redundant keys from Card
-        <Link key={card.id} href={`/products/${card.id}`}>
-          <Card data={card} />
-        </Link>
-      ))}
+    <div className="space-y-6">
+      {/* Header Label - Aligned with the layout theme */}
+      <div className="text-center md:text-left max-w-7xl mx-auto px-4">
+        <h2 className="text-xl font-black uppercase tracking-widest text-purple-400">
+          Exclusive Deals
+        </h2>
+      </div>
+
+      {/* Grid Container matching Products layout columns */}
+      <div className="flex flex-wrap gap-6 w-full justify-center max-w-7xl mx-auto px-4">
+        {products.map((card: Product) => (
+          <Link key={card.id} href={`/products/${card.id}`} className="group">
+            <Card data={card} />
+          </Link>
+        ))}
+      </div>
     </div>
   );
 };
 
 export default Section;
 
-// Fixed: Replaced 'unknown' with the proper Product type mapping
+// Card exactly cloned from app/products/page.tsx
 function Card({ data }: { data: Product }) {
+  const imgUrl = data.images && data.images.length > 0 ? data.images : "";
+
   return (
-    <div className="px-2 bg-white text-[#11212D] h-[250px] w-[270px] rounded-lg flex flex-col items-center gap-3 relative shadow-sm">
-      {/* Fixed: Extracting the first string from the images array */}
-      <img 
-        src={data.images[0] || "/placeholder.png"} 
-        className="h-[160px] w-[230px] object-contain" 
-        alt={data.title} 
-      />
-      <h1 className="text-lg font-semibold text-center line-clamp-1 px-1">{data.title}</h1>
-      
-      {/* Fixed: Altered invalid rounded-4xl class to standard rounded-3xl */}
-      <div className="p-0.5 text-white text-center w-[40px] bg-green-500 absolute top-1 text-xs right-1 rounded-3xl">
-        {data.discountPercentage.toFixed(1)}%
+    <div className="p-4 bg-neutral-900/40 border border-neutral-800/80 hover:border-purple-500/40 w-[280px] h-[330px] rounded-2xl flex flex-col items-center justify-between relative shadow-xl backdrop-blur-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_10px_30px_-10px_rgba(147,51,234,0.15)]">
+      {/* Dynamic Discount Tag */}
+      <div className="absolute top-3 right-3 px-2 py-1 text-white text-center text-xs font-bold bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg shadow-md z-10">
+        -{data.discountPercentage.toFixed(0)}%
+      </div>
+
+      {/* Product Image Layer */}
+      <div className="bg-neutral-950/80 border border-neutral-800/40 rounded-xl w-full h-[180px] flex items-center justify-center overflow-hidden p-3 relative group-hover:border-neutral-700/50 transition-colors duration-200">
+        {imgUrl ? (
+          <img
+            src={imgUrl}
+            className="max-h-full max-w-full object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] group-hover:scale-105 transition-transform duration-300"
+            alt={data.title}
+          />
+        ) : (
+          <div className="text-xs text-neutral-600">No Image Available</div>
+        )}
+      </div>
+
+      {/* Product Title Section */}
+      <div className="w-full text-center mt-2 flex-grow flex items-center justify-center px-1">
+        <h2 className="text-sm md:text-base font-bold text-neutral-200 group-hover:text-purple-400 transition-colors duration-200 line-clamp-2 leading-snug">
+          {data.title}
+        </h2>
+      </div>
+
+      {/* Action Prompt */}
+      <div className="w-full pt-2 border-t border-neutral-800/40 text-center text-xs font-semibold text-neutral-500 group-hover:text-neutral-300 transition-colors duration-200 flex items-center justify-center gap-1">
+        View Specs <span>→</span>
       </div>
     </div>
   );

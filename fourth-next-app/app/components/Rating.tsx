@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
 import { useEffect, useState } from "react";
 
 interface Review {
   reviewerName: string;
   rating: number;
-  comment: string; // Added field for the comment text
+  comment: string;
 }
 
 interface Product {
@@ -18,53 +18,63 @@ interface Product {
 const Rating = () => {
   const [products, setProducts] = useState<Product[]>([]);
 
-  // Your original exact data fetching logic
+  // Original data fetching structure kept completely intact
   const getData = async () => {
-    const response = await fetch(`https://dummyjson.com/products?limit=12&skip=100`);
-    const { products } = await response.json();
-    // console.log(products);
-    setProducts(products);
+    try {
+      const response = await fetch(`https://dummyjson.com/products?limit=12&skip=100`);
+      const data = await response.json();
+      setProducts(data.products || []);
+    } catch (error) {
+      console.error("Failed to sync customer reviews:", error);
+    }
   };
 
   useEffect(() => {
     getData();
   }, []);
 
-  // Reusable card component function inside the same file
+  // Custom styled card component following matching guidelines
   const renderProductCard = (product: Product) => {
-    // Extracts the actual review data from the API's internal reviews array
     const actualReviewerName = product.reviews?.[0]?.reviewerName || "Verified Buyer";
     const customerComment = product.reviews?.[0]?.comment || "Great product, highly recommended!";
 
     return (
-      <div key={product.id} className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+      <div 
+        key={product.id} 
+        className="bg-neutral-900/40 border border-neutral-800/80 hover:border-purple-500/30 rounded-2xl p-6 shadow-xl backdrop-blur-sm transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1"
+      >
         <div>
-          {/* User Info Header */}
-          <div className="mb-2">
-            <h4 className="font-semibold text-gray-800 text-sm">{actualReviewerName}</h4>
+          {/* User Info Header Area */}
+          <div className="mb-3 flex items-center gap-2">
+            <div className="w-7 h-7 rounded-full bg-purple-950/60 border border-purple-800/40 flex items-center justify-center text-xs font-bold text-purple-400">
+              {actualReviewerName.charAt(0)}
+            </div>
+            <h4 className="font-semibold text-neutral-200 text-sm tracking-wide">
+              {actualReviewerName}
+            </h4>
           </div>
 
-          {/* Customer Comment Text */}
-          <p className="text-gray-500 text-sm italic mb-4 line-clamp-2">
-            {customerComment}
+          {/* Customer Feedback Body */}
+          <p className="text-neutral-400 text-sm italic mb-4 line-clamp-3 leading-relaxed">
+            "{customerComment}"
           </p>
 
-          {/* Product Title */}
-          <h3 className="font-bold text-[#4A5C6A] text-base line-clamp-1 mb-2">
+          {/* Connected Hardware Identity Title */}
+          <h3 className="font-bold text-neutral-300 group-hover:text-purple-400 transition-colors duration-200 text-xs uppercase tracking-wider line-clamp-1 mb-2">
             {product.title}
           </h3>
         </div>
 
-        {/* Rating Stars Render */}
-        <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-50">
-          <div className="flex text-amber-500 text-sm">
+        {/* Rating Star System Display */}
+        <div className="flex items-center gap-2 mt-4 pt-4 border-t border-neutral-800/50">
+          <div className="flex text-purple-400 text-sm tracking-tight">
             {Array.from({ length: 5 }).map((_, index) => (
               <span key={index}>
                 {index < Math.round(product.rating) ? "★" : "☆"}
               </span>
             ))}
           </div>
-          <span className="text-sm font-bold text-gray-600">
+          <span className="text-xs font-black text-neutral-500 bg-neutral-950/60 border border-neutral-800/40 px-2 py-0.5 rounded-md">
             {product.rating.toFixed(1)}
           </span>
         </div>
@@ -73,17 +83,33 @@ const Rating = () => {
   };
 
   return (
-    <div className="p-5 h-auto mt-20 max-w-8xl mx-auto">
-      {/* Clean Header Layout */}
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-[#4A5C6A] mb-2">Why Choosing Us?</h1>
-        <p className="text-xl text-[#11212D] font-semibold">Our Ratings</p>
+    <div className="py-16 px-4 max-w-7xl mx-auto selection:bg-purple-500 selection:text-white">
+      {/* Clean Dynamic Header Layout - Perfectly matches About and Landing styles */}
+      <div className="text-center mb-16 relative overflow-hidden">
+        <div className="absolute inset-x-0 top-0 h-24 bg-purple-500/5 blur-[100px] pointer-events-none rounded-full" />
+        <span className="text-xs font-bold uppercase tracking-widest text-purple-400 bg-purple-950/40 border border-purple-800/30 px-3 py-1 rounded-full">
+          Platform Statistics
+        </span>
+        <h2 className="text-3xl md:text-5xl font-black mt-3 bg-gradient-to-r from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent tracking-tight">
+          Why Choosing Us?
+        </h2>
+        <p className="text-sm font-semibold uppercase tracking-wider text-neutral-500 mt-2">
+          Verified Global Ratings
+        </p>
       </div>
 
-      {/* Grid rendering your cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {products.map((product) => renderProductCard(product))}
-      </div>
+      {/* Grid structure rendering review components */}
+      {products && products.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {products.map((product) => renderProductCard(product))}
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <p className="text-sm font-medium text-neutral-600 uppercase tracking-widest">
+            Synchronizing customer logs...
+          </p>
+        </div>
+      )}
     </div>
   );
 };
