@@ -1,4 +1,6 @@
-"use cache"
+"use cache";
+
+
 import axios from "axios";
 
 
@@ -35,8 +37,7 @@ const DetailPage = async ({params} : ProductId) => {
 
        {/* Discount percent! */}
        <div className="p-0.5  text-white text-center w-[40px] bg-green-500 absolute top-1 text-xs right-1  rounded-4xl">
-   {data.
-discountPercentage.toFixed(1)}% 
+   {data.discountPercentage.toFixed(1)}% 
      </div>
       </div>
     </div>
